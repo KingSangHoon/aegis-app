@@ -54,15 +54,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 풀스크린 + 상태바 투명
+        // 상태바/네비바 색상
         window.apply {
             addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
             statusBarColor = Color.parseColor("#080c10")
             navigationBarColor = Color.parseColor("#080c10")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                attributes.layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            }
         }
 
         // 권한 요청
@@ -71,6 +67,7 @@ class MainActivity : AppCompatActivity() {
         // 레이아웃 (코드로 생성)
         val root = FrameLayout(this).apply {
             setBackgroundColor(Color.parseColor("#080c10"))
+            fitsSystemWindows = true
         }
 
         progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
