@@ -41,3 +41,24 @@ jobs:
         with:
           name: aegis-release
           path: app/build/outputs/apk/release/*.apk
+
+      - name: Upload APKs to AEGIS-SHARE
+        env:
+          SHARE_PIN: ${{ secrets.SHARE_PIN }}
+        run: |
+          DEBUG_APK=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          RELEASE_APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+
+          echo "📦 Uploading Debug APK..."
+          curl -sf -X POST "https://share.tkdgns.com/api/upload" \
+            -H "X-Share-Pin: ${SHARE_PIN}" \
+            -F "file=@${DEBUG_APK}" \
+            -F "description=AEGIS App Debug Build #${{ github.run_number }}" \
+            -F "expiry_hours=168" && echo " ✅ Debug uploaded"
+
+          echo "📦 Uploading Release APK..."
+          curl -sf -X POST "https://share.tkdgns.com/api/upload" \
+            -H "X-Share-Pin: ${SHARE_PIN}" \
+            -F "file=@${RELEASE_APK}" \
+            -F "description=AEGIS App Release Build #${{ github.run_number }}" \
+            -F "expiry_hours=168" && echo " ✅ Release uploaded"
