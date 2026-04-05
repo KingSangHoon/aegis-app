@@ -201,7 +201,7 @@ class MainActivity : AppCompatActivity() {
                 fileCallback?.onReceiveValue(null)
                 fileCallback = callback
 
-                val intent = params?.createIntent()
+                val intent = params?.createIntent() ?: return false
                 try {
                     startActivityForResult(intent, FILE_CHOOSER_CODE)
                 } catch (_: Exception) {
