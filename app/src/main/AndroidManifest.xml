@@ -23,6 +23,12 @@
     <!-- 알림 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+
+    <!-- 포그라운드 서비스 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- 기타 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -61,6 +67,24 @@
                 <data android:scheme="https" android:host="*.tkdgns.com" />
             </intent-filter>
         </activity>
+
+        <!-- 알림 수집 서비스 -->
+        <service
+            android:name=".NotificationService"
+            android:label="AEGIS 알림 수집"
+            android:exported="true"
+            android:foregroundServiceType="dataSync"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- 포그라운드 서비스 -->
+        <service
+            android:name=".DiaryForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <!-- 파일 다운로드용 Provider -->
         <provider

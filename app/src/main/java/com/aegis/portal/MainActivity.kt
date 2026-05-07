@@ -3,7 +3,9 @@ package com.aegis.portal
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.DownloadManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,6 +16,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Message
+import android.os.PowerManager
+import android.provider.Settings
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
@@ -63,6 +67,8 @@ class MainActivity : AppCompatActivity() {
 
         // 권한 요청
         requestAllPermissions()
+        requestBatteryOptimizationExemption()
+        setupDiaryServices()
 
         // 레이아웃 (코드로 생성)
         val root = FrameLayout(this).apply {
@@ -287,6 +293,45 @@ class MainActivity : AppCompatActivity() {
         // 인텐트로 들어온 URL 처리 (딥링크)
         val url = intent?.data?.toString() ?: HOME_URL
         webView.loadUrl(url)
+    }
+
+    private fun setupDiaryServices() {
+        // 알림 접근 권한 확인 및 요청
+        if (!isNotificationListenerEnabled()) {
+            AlertDialog.Builder(this)
+                .setTitle("알림 접근 권한 필요")
+                .setMessage("일기 자동 작성을 위해 알림 접근 권한이 필요합니다.\n설정에서 AEGIS 앱을 허용해주세요.")
+                .setPositiveButton("설정으로 이동") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                }
+                .setNegativeButton("나중에") { d, _ -> d.dismiss() }
+                .show()
+        } else {
+            // 포그라운드 서비스 시작
+            DiaryForegroundService.start(this)
+            // 30분 배치 동기화 스케줄
+            SyncWorker.schedule(this)
+        }
+    }
+
+    private fun isNotificationListenerEnabled(): Boolean {
+        val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners") ?: return false
+        return flat.contains(ComponentName(this, NotificationService::class.java).flattenToString())
+    }
+
+    @SuppressLint("BatteryLife")
+    private fun requestBatteryOptimizationExemption() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val pm = getSystemService(PowerManager::class.java)
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                try {
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                    startActivity(intent)
+                } catch (_: Exception) {}
+            }
+        }
     }
 
     private fun requestAllPermissions() {
